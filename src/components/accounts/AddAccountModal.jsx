@@ -1,24 +1,49 @@
-import { Modal, Form, Input, Select, Button } from "antd";
+import { Modal, Form, Input, Select, Button, notification } from "antd";
 import {
   EyeInvisibleOutlined,
   EyeTwoTone,
   UserOutlined,
   LockOutlined,
 } from "@ant-design/icons";
+import { useCreateAccountMutation } from "../../apis";
 
 const { Option } = Select;
 
-const AddAccountModal = ({ open, onCancel, onSubmit }) => {
+const AddAccountModal = ({ open, onCancel }) => {
   const [form] = Form.useForm();
+  const [createAccount] = useCreateAccountMutation();
+
+  const handleCancel = () => {
+    onCancel();
+    form.resetFields();
+  };
 
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
       console.log("Form data:", values);
-      if (onSubmit) onSubmit(values);
-      form.resetFields();
+      const response = await createAccount(values).unwrap();
+      console.log("Form data:", response, response?.data?.message);
+
+      if (response?.status === 200) {
+        notification.success({
+          message: "Success",
+          description: ` thành công!`,
+        });
+        handleCancel();
+      } else {
+        notification.error({
+          message: "Error",
+          description: `${response?.data?.message}!`,
+        });
+      }
     } catch (err) {
-      console.log("Validation failed:", err);
+      console.log("Error:", err);
+      notification.error({
+        message: "Error",
+        description: "Thất bại",
+      });
+      return false;
     }
   };
 
@@ -28,7 +53,7 @@ const AddAccountModal = ({ open, onCancel, onSubmit }) => {
         <span className="font-semibold text-gray-700">Thêm tài khoản</span>
       }
       open={open}
-      onCancel={onCancel}
+      onCancel={handleCancel}
       footer={[
         <Button key="cancel" onClick={onCancel}>
           Hủy
@@ -40,6 +65,13 @@ const AddAccountModal = ({ open, onCancel, onSubmit }) => {
       className="rounded-xl w-[800px]"
     >
       <Form form={form} layout="vertical" className="mt-4">
+        <Form.Item
+          name="codeEmployee"
+          label="Mã nhân viên"
+          rules={[{ required: true, message: "Vui lòng nhập mã nhân viên" }]}
+        >
+          <Input prefix={<UserOutlined />} placeholder="Nhập tên người dùng" />
+        </Form.Item>
         {/* Username */}
         <Form.Item
           name="username"

@@ -42,9 +42,9 @@ export const mockUsers = [
 ];
 
 export const STATUS_ENUM = {
-  ACTIVE: "ACTIVE",
-  INACTIVE: "INACTIVE",
-  LOCKED: "LOCKED",
+  ACTIVE: "Active",
+  INACTIVE: "Inactive",
+  LOCKED: "Locked",
   ALL: "ALL",
 };
 

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Layout, Tag, Button, Space } from "antd";
+import { Layout, Tag, Button, Space, Spin } from "antd";
 import { ProFormSelect, ProTable } from "@ant-design/pro-components";
 import { UserOutlined } from "@ant-design/icons";
 import { mockUsers } from "../constants";
@@ -11,6 +11,12 @@ import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { AddAccountsButton } from "../components/accounts/AddAccountsButton";
 import AddAccountModal from "../components/accounts/AddAccountModal";
 import ImportAccountModal from "../components/accounts/ImportAccountModal";
+import AccountDetailDrawer from "../components/accounts/AccountDetail.jsx";
+import AddEmployeeDrawer from "../components/employee/AddEmployeeDrawer.jsx";
+import {
+  useGetAccountsQuery,
+  useDeleteAccountMutation,
+} from "../apis/index.js";
 
 const { Header, Footer, Content } = Layout;
 
@@ -26,18 +32,22 @@ const AccountListPage = () => {
 
   const [query, setQuery] = useState(DEFAULT_QUERY);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const [selectedAccount, setSelectedAccount] = useState(null);
+  const [openDetailModal, setOpenDetailModal] = useState(false);
 
-  // const onSubmit = (value) => {
-  //   const formatValue = formatAgentBUFilter(value);
-  //   setQuery({ ...DEFAULT_QUERY, ...formatValue });
-  // };
+  const { data, error, isLoading } = useGetAccountsQuery();
+  const [deleteAccount] = useDeleteAccountMutation();
 
   const columns = accountListColumns({
-    onViewDetail: (id) => console.log(id),
+    onViewDetail: (id) => setSelectedAccount(id),
     onClone: (id) => console.log(id),
     currentPage: pagination.current,
     pageSize: pagination.pageSize,
   });
+
+  if (isLoading) return <Spin />;
+  // if (error) return <p>Error loading accounts</p>;
+
   return (
     <Layout className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -45,13 +55,23 @@ const AccountListPage = () => {
         <div className="flex items-center space-x-2">
           <UserOutlined className="text-xl text-blue-600" />
           <h1 className="text-lg font-semibold text-gray-800">
-            Quản lý tài khoản
+            Quản lý tài khoản nhân viên
           </h1>
         </div>
-        <AddAccountsButton
-          addAccount={() => setOpenModal(true)}
-          importAccounts={() => setOpenImport(true)}
-        />
+
+        <div className="flex gap-2">
+          <AddAccountsButton
+            addAccount={() => setOpenModal(true)}
+            importAccounts={() => setOpenImport(true)}
+          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOpenDetailModal(true)}
+          >
+            Thêm nhân viên
+          </Button>
+        </div>
       </Header>
 
       {/* Content */}
@@ -60,7 +80,7 @@ const AccountListPage = () => {
           <ProTable
             rowKey="id"
             columns={columns}
-            dataSource={mockUsers}
+            dataSource={data?.items?.$values || mockUsers}
             pagination={{ pageSize: 5 }}
             headerTitle="Danh sách tài khoản"
             toolBarRender={false}
@@ -105,14 +125,7 @@ const AccountListPage = () => {
         </div>
       </Content>
 
-      <AddAccountModal
-        open={openModal}
-        onCancel={() => setOpenModal(false)}
-        onSubmit={(values) => {
-          console.log("Tài khoản mới:", values);
-          setOpenModal(false);
-        }}
-      />
+      <AddAccountModal open={openModal} onCancel={() => setOpenModal(false)} />
       <ImportAccountModal
         open={openImport}
         onCancel={() => setOpenImport(false)}
@@ -121,12 +134,19 @@ const AccountListPage = () => {
           setOpenImport(false);
         }}
       />
-
-      {/* Footer */}
-      <Footer className="text-center bg-white border-t text-gray-500">
-        © {new Date().getFullYear()} Account Management - Powered by Ant Design
-        + Tailwind
-      </Footer>
+      {/* <AccountDetailDrawer
+        open={!!selectedAccount}
+        account={selectedAccount}
+        onClose={() => setSelectedAccount(null)}
+      /> */}
+      <AddEmployeeDrawer
+        open={openDetailModal}
+        onClose={() => setOpenDetailModal(false)}
+        onSubmit={(data) => {
+          console.log("Employee data:", data);
+        }}
+        readOnly={selectedAccount}
+      />
     </Layout>
   );
 };

@@ -15,7 +15,7 @@ import {
   STATUS_ENUM,
 } from "../../constants";
 
-export const accountListColumns = ({
+export const employeeListColumns = ({
   onViewDetail,
   onEdit,
   currentPage,
@@ -155,8 +155,3 @@ export const accountListColumns = ({
     },
   ];
 };
-
-export const paginationToOffsetLimit = (current, pageSize) => ({
-  page: current - 1,
-  limit: pageSize,
-});
