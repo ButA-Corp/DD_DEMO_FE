@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.container {
+  @apply max-w-[90%] p-10 mx-auto bg-white rounded-lg shadow-lg;
+}
