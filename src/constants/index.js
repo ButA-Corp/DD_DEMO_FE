@@ -85,4 +85,5 @@ export const ACCOUNT_LABELS = {
   startDate: "Ngày vào làm", // ngayVaoLam
   rank: "Cấp bậc", // capBac
   profileImage: "Ảnh đại diện", // anhDaiDien
+  statusRow: "Nội dung lỗi"
 };

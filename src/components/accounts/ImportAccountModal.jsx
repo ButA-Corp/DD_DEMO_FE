@@ -119,7 +119,7 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
     const hasError = record._rowErrors && record._rowErrors[column];
     return hasError ? (
       <Tooltip title={record._rowErrors[column]}>
-        <div className="bg-red-100 text-red-600 px-2 py-1 rounded flex items-center gap-1">
+        <div className={`bg-red-100 text-red-600 px-2 py-1 rounded flex items-center gap-1 ${record && record?.statusRow ? 'bg-red-100 text-red-600' : ''}`}>
           <ExclamationCircleOutlined />
           {text || "<trống>"}
         </div>
@@ -136,16 +136,24 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       const response = await importAccounts(data).unwrap();
       console.log(response);
 
-      if (response?.status === 200) {
+      if (response?.totalSuccess > 0) {
         notification.success({
           message: "Success",
-          description: ` thành công!`,
+          description: `Import thành công!`,
         });
       } else {
-        notification.error({
-          message: "Error",
-          description: `${response?.data?.message}!`,
-        });
+        if(response?.errors?.$values.length > 0) {
+          const errors = response?.errors?.$values || []
+          var newData = [...parsedData];
+          errors.forEach((err, index) => {
+            newData[index] = {...newData[index], statusRow: err.errors }
+          })
+          setParsedData(newData);
+        }
+        // notification.error({
+        //   message: "Error",
+        //   description: `${response?.data?.message || "Có lỗi xảy ra"}!`,
+        // });
       }
     } catch (err) {
       console.log("Error:", err);
@@ -155,14 +163,14 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       });
       return false;
     }
-    onSubmit();
+    // onSubmit();
   };
 
-  const columns = [...requiredColumns, ...optionalColumns].map((col) => ({
+  const columns = ["statusRow", ...requiredColumns, ...optionalColumns].map((col) => ({
     title: ACCOUNT_LABELS[col],
     dataIndex: col,
     key: col,
-    width: 150,
+    width: 200,
     ellipsis: true,
     render: (text, record) => renderCell(text, record, col),
   }));
@@ -229,7 +237,7 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
                 Tổng số bản ghi: <b>{summary.total}</b>
               </p>
               <p className="text-green-600">
-                Thành công: <b>{summary.success}</b>
+                Bản ghi hợp lệ: <b>{summary.success}</b>
               </p>
               <p className="text-red-600">
                 Thất bại: <b>{summary.failed}</b>
@@ -248,7 +256,7 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
             columns={columns}
             size="small"
             scroll={{
-              x: 500,
+              x: 100,
             }}
             rowKey={(record, idx) => record.tenDangNhap || idx}
             pagination={{ pageSize: 5 }}
