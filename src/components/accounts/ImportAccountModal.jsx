@@ -119,7 +119,7 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
     const hasError = record._rowErrors && record._rowErrors[column];
     return hasError ? (
       <Tooltip title={record._rowErrors[column]}>
-        <div className={`bg-red-100 text-red-600 px-2 py-1 rounded flex items-center gap-1 ${record && record?.statusRow ? 'bg-red-100 text-red-600' : ''}`}>
+        <div className="bg-red-100 text-red-600 px-2 py-1 rounded flex items-center gap-1">
           <ExclamationCircleOutlined />
           {text || "<trống>"}
         </div>
@@ -136,41 +136,38 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       const response = await importAccounts(data).unwrap();
       console.log(response);
 
-      if (response?.totalSuccess > 0) {
-        notification.success({
-          message: "Success",
-          description: `Import thành công!`,
-        });
+      if (response?.errors?.$values?.length === 0) {
+        message.success("Import thành công");
+        onSubmit();
       } else {
-        if(response?.errors?.$values.length > 0) {
-          const errors = response?.errors?.$values || []
-          var newData = [...parsedData];
-          errors.forEach((err, index) => {
-            newData[index] = {...newData[index], statusRow: err.errors }
-          })
-          setParsedData(newData);
-        }
-        // notification.error({
-        //   message: "Error",
-        //   description: `${response?.data?.message || "Có lỗi xảy ra"}!`,
-        // });
+        const buildSummary = (data, totalSuccess) => {
+          let total = data?.length + totalSuccess || 0;
+          let failed = data?.length;
+          let success = totalSuccess;
+
+          return {
+            total,
+            success,
+            failed,
+            details: data, // giữ lại để hiển thị chi tiết nếu cần
+          };
+        };
+
+        setSummary(
+          buildSummary(response?.errors?.$values, response?.totalSuccess)
+        );
       }
     } catch (err) {
-      console.log("Error:", err);
-      notification.error({
-        message: "Error",
-        description: "Thất bại",
-      });
+      message.error("Có lỗi xảy ra! Vui lòng thử lại.");
       return false;
     }
-    // onSubmit();
   };
 
-  const columns = ["statusRow", ...requiredColumns, ...optionalColumns].map((col) => ({
+  const columns = [...requiredColumns, ...optionalColumns].map((col) => ({
     title: ACCOUNT_LABELS[col],
     dataIndex: col,
     key: col,
-    width: 200,
+    width: 150,
     ellipsis: true,
     render: (text, record) => renderCell(text, record, col),
   }));
@@ -206,7 +203,6 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
               message.error("Không thể import do có dữ liệu lỗi");
             } else {
               handleSubmit(parsedData.map(({ _rowErrors, ...rest }) => rest));
-              // gửi dữ liệu đã map theo cột TV; bỏ trường _rowErrors khi submit
             }
           }}
         >
@@ -230,22 +226,28 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       {summary && (
         <Alert
           className="mb-4"
-          icon={<FileDoneOutlined />}
           message={
             <div>
               <p>
-                Tổng số bản ghi: <b>{summary.total}</b>
+                Tổng số bản ghi: <b>{summary?.total}</b>
               </p>
               <p className="text-green-600">
-                Bản ghi hợp lệ: <b>{summary.success}</b>
+                {summary?.details?.length ? "Thành công" : "Hợp lệ"}:{" "}
+                <b>{summary?.success}</b>
               </p>
               <p className="text-red-600">
-                Thất bại: <b>{summary.failed}</b>
+                {summary?.details?.length ? "Thất bại" : "Không hợp lệ"}:{" "}
+                <b>{summary?.failed}</b>
               </p>
+
+              {summary?.details?.map((item, idx) => (
+                <div key={idx} className="text-red-500">
+                  Dòng {item?.line}: {item?.errors}
+                </div>
+              ))}
             </div>
           }
-          type={summary.failed > 0 ? "warning" : "success"}
-          showIcon
+          type={summary?.failed > 0 ? "warning" : "success"}
         />
       )}
 
@@ -256,7 +258,7 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
             columns={columns}
             size="small"
             scroll={{
-              x: 100,
+              x: 500,
             }}
             rowKey={(record, idx) => record.tenDangNhap || idx}
             pagination={{ pageSize: 5 }}
