@@ -30,9 +30,7 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
   const [form] = Form.useForm();
   const title = readOnly
     ? "Thông tin tài khoản"
-    : id
-    ? "Chỉnh sửa thông tin tài khoản"
-    : "Thêm tài khoản mới";
+    : "Chỉnh sửa thông tin tài khoản";
 
   const [getAccountDetail, { data, isLoading, isFetching }] =
     useLazyGetAccountDetailQuery();
@@ -43,7 +41,7 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
   const fetchAccDetail = async () => {
     try {
       const response = await getAccountDetail(id).unwrap();
-      
+
       if (response?.item?.nhanVien?.anhDaiDien) {
         setProfileImage("https://localhost:7286/" + response.item.nhanVien.anhDaiDien);
       } else {
@@ -58,7 +56,6 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
   const handleFinish = async (values) => {
     const payload = formatPayload(values);
     try {
-
       payload.id = id;
       const response = await updateAccount(payload).unwrap();
       console.log(response);
@@ -112,7 +109,7 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
     if (id) {
       fetchAccDetail();
     }
-  }, [id]);
+  }, [open, id]);
 
   useEffect(() => {
     form.setFieldsValue(normalizeInitialAccDetail(accDetail, readOnly));
@@ -185,7 +182,10 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
                   { required: true, message: "Vui lòng nhập mã nhân viên" },
                 ]}
               >
-                {RO("maNhanVien", <Input placeholder="VD: E001" readOnly={true} />)}
+                {RO(
+                  "maNhanVien",
+                  <Input placeholder="VD: E001" readOnly={true} />
+                )}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -236,7 +236,11 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
               >
                 {RO(
                   "ngaySinh",
-                  <DatePicker className="w-full" format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />,
+                  <DatePicker
+                    className="w-full"
+                    format="YYYY-MM-DD"
+                    placeholder="YYYY-MM-DD"
+                  />,
                   fmtDate
                 )}
               </Form.Item>
@@ -270,7 +274,11 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
               >
                 {RO(
                   "ngayVaoLam",
-                  <DatePicker className="w-full" format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />,
+                  <DatePicker
+                    className="w-full"
+                    format="YYYY-MM-DD"
+                    placeholder="YYYY-MM-DD"
+                  />,
                   fmtDate
                 )}
               </Form.Item>
@@ -280,18 +288,22 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                  name="phongBan"
-                  label="Phòng ban"
-                  rules={[{ required: true, message: "Vui lòng nhập" }]}
-                >
-                  {RO(
-                    "phongBan",
-                    <Select placeholder="Chọn phòng ban" allowClear>
-                      <Select.Option value="Phòng Kinh Doanh">Phòng Kinh Doanh</Select.Option>
-                      <Select.Option value="Phòng Nhân Sự">Phòng Nhân Sự</Select.Option>
-                      <Select.Option value="PB003">Phòng IT</Select.Option>
-                    </Select>
-                  )}
+                name="phongBan"
+                label="Phòng ban"
+                rules={[{ required: true, message: "Vui lòng nhập" }]}
+              >
+                {RO(
+                  "phongBan",
+                  <Select placeholder="Chọn phòng ban" allowClear>
+                    <Select.Option value="Phòng Kinh Doanh">
+                      Phòng Kinh Doanh
+                    </Select.Option>
+                    <Select.Option value="Phòng Nhân Sự">
+                      Phòng Nhân Sự
+                    </Select.Option>
+                    <Select.Option value="PB003">Phòng IT</Select.Option>
+                  </Select>
+                )}
               </Form.Item>
             </Col>
             <Col span={12}>

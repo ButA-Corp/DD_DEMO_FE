@@ -83,8 +83,8 @@ export const handleApiOperation = async ({
 };
 
 export const normalizeInitialAccDetail = (apiAccount, readOnly) => {
+  if (!apiAccount) return {};
   const nv = apiAccount?.nhanVien || {};
-  const safeDate = (d) => (d ? dayjs(d) : null);
 
   return {
     // ảnh nếu có
@@ -95,10 +95,18 @@ export const normalizeInitialAccDetail = (apiAccount, readOnly) => {
     hoTen: nv.hoTen ?? "",
     email: nv.email ?? "",
     gioiTinh: nv.gioiTinh ?? undefined, // Select
-    ngaySinh: readOnly ? nv.ngaySinh ? (safeDate(nv.ngaySinh))?.format('YYYY-MM-DD') : (safeDate(nv.ngaySinh)) : undefined, // DatePicker
+    ngaySinh: readOnly
+      ? nv.ngaySinh
+      : nv.ngaySinh
+      ? dayjs(nv.ngaySinh, "YYYY-MM-DD")
+      : null, // DatePicker
     cccd: nv.cccd ?? "",
     soDienThoai: nv.soDienThoai ?? "",
-    ngayVaoLam: readOnly ? nv.ngayVaoLam ? (safeDate(nv.ngayVaoLam))?.format('YYYY-MM-DD') : (safeDate(nv.ngayVaoLam)) : undefined, // DatePicker
+    ngayVaoLam: readOnly
+      ? nv.ngayVaoLam
+      : nv.ngayVaoLam
+      ? dayjs(nv.ngayVaoLam, "YYYY-MM-DD")
+      : null,
     phongBan: nv.phongBan ?? "",
     chucVu: nv.chucVu ?? "",
 

@@ -93,7 +93,7 @@ export const apiSlice = createApi({
       invalidatesTags: ["Employees"],
     }),
     uploadProfile: builder.mutation({
-      query: ({body}) => ({
+      query: ({ body }) => ({
         url: `/accounts/upload-profile`,
         method: "POST",
         body,

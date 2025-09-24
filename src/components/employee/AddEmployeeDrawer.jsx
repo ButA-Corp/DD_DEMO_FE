@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import {
   Drawer,
   Form,
@@ -21,33 +22,106 @@ import {
   useLazyGetAccountDetailQuery,
 } from "../../apis";
 import { formatPayload, normalizeInitialAccDetail } from "../../utils";
+import ReadOnlyField from "../ReadOnlyField";
 
 const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
   const [profileImage, setProfileImage] = useState(null);
   const [form] = Form.useForm();
-  const title = readOnly
-    ? "Thông tin nhân viên"
-    : id
-    ? "Chỉnh sửa thông tin nhân viên"
-    : "Thêm nhân viên mới";
+  const title = "Thông tin nhân viên";
 
   const [getAccountDetail, { data, isLoading, isFetching }] =
     useLazyGetAccountDetailQuery();
   const [createEmployee] = useCreateEmployeeMutation();
   const [accDetail, setAccDetail] = useState();
 
+  // Format date for read-only display (accepts dayjs or string)
+  const fmtDate = (d) => {
+    if (d === null || d === undefined || d === "") return "";
+    // dayjs object
+    if (dayjs.isDayjs && dayjs.isDayjs(d)) {
+      return d.isValid() ? d.format("YYYY-MM-DD") : "";
+    }
+    // native Date
+    if (d instanceof Date) {
+      const dd = dayjs(d);
+      return dd.isValid() ? dd.format("YYYY-MM-DD") : "";
+    }
+    // number (timestamp)
+    if (typeof d === "number") {
+      const dd = dayjs(d);
+      return dd.isValid() ? dd.format("YYYY-MM-DD") : String(d);
+    }
+    // string (try parse)
+    const parsed = dayjs(String(d));
+    return parsed.isValid() ? parsed.format("YYYY-MM-DD") : String(d);
+  };
+
   const fetchAccDetail = async () => {
+    if (!id) return;
     try {
       const response = await getAccountDetail(id).unwrap();
-      console.log(data, response);
-      setAccDetail(response?.item);
+      const item = response?.item ?? response;
+      setAccDetail(item);
+
+      // normalize initial (your helper)
+      let initial = normalizeInitialAccDetail(item, readOnly) || {};
+
+      // convert date fields to dayjs objects if they are not already
+      ["ngaySinh", "ngayVaoLam"].forEach((k) => {
+        if (initial[k]) {
+          // only convert when not a dayjs already
+          if (!(dayjs.isDayjs && dayjs.isDayjs(initial[k]))) {
+            initial[k] = dayjs(initial[k]);
+            // if invalid date, set null to avoid DatePicker crash
+            if (!initial[k].isValid()) initial[k] = null;
+          }
+        } else {
+          initial[k] = null;
+        }
+      });
+
+      // set profile image if exists
+      if (item?.profileImage || item?.profile_image) {
+        setProfileImage(item.profileImage || item.profile_image);
+      }
+
+      form.setFieldsValue(initial);
+      console.log("Set form values:", initial);
     } catch (error) {
-      notification.error({ message: "Error", description: error });
+      console.error("fetchAccDetail error:", error);
+      notification.error({ message: "Error", description: String(error) });
     }
   };
 
+  useEffect(() => {
+    if (id && open) {
+      fetchAccDetail();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, open]);
+
+  // reset when closing to avoid stale values (and avoid DatePicker complaining later)
+  useEffect(() => {
+    if (!open) {
+      form.resetFields();
+      setProfileImage(null);
+      setAccDetail(undefined);
+    }
+  }, [open, form]);
+
   const handleFinish = async (values) => {
-    const payload = formatPayload(values);
+    // ensure date fields are converted to string YYYY-MM-DD before submit
+    const payloadValues = {
+      ...values,
+      ngaySinh: values.ngaySinh
+        ? dayjs(values.ngaySinh).format("YYYY-MM-DD")
+        : null,
+      ngayVaoLam: values.ngayVaoLam
+        ? dayjs(values.ngayVaoLam).format("YYYY-MM-DD")
+        : null,
+    };
+
+    const payload = formatPayload(payloadValues);
     try {
       const response = await createEmployee(payload).unwrap();
       console.log(response);
@@ -55,12 +129,12 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
       if (response?.item) {
         notification.success({
           message: "Success",
-          description: ` thành công!`,
+          description: `Thao tác thành công!`,
         });
       } else {
         notification.error({
           message: "Error",
-          description: `${response?.data?.message}!`,
+          description: `${response?.data?.message || "Không xác định"}!`,
         });
       }
     } catch (err) {
@@ -74,9 +148,16 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
 
     form.resetFields();
     onClose();
-
-    // call API...
   };
+
+  const RO = (name, editable, fmt) =>
+    readOnly ? (
+      <ReadOnlyField
+        value={fmt ? fmt(form.getFieldValue(name)) : form.getFieldValue(name)}
+      />
+    ) : (
+      editable
+    );
 
   const handleUpload = (file) => {
     const reader = new FileReader();
@@ -87,12 +168,6 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
     reader.readAsDataURL(file);
     return false;
   };
-
-  useEffect(() => {
-    if (id) {
-      fetchAccDetail();
-    }
-  }, [id]);
 
   return (
     <Drawer
@@ -119,7 +194,6 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
           form={form}
           onFinish={handleFinish}
           disabled={readOnly}
-          initialValues={normalizeInitialAccDetail(accDetail)} // <-- thêm ở bước 2
         >
           {/* Avatar + Upload */}
           <div className="flex items-center gap-4 mb-6">
@@ -128,35 +202,37 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
               src={profileImage}
               icon={!profileImage && <UserOutlined />}
             />
-            <Upload
-              beforeUpload={handleUpload}
-              showUploadList={false}
-              accept="image/*"
-            >
-              <Button icon={<UploadOutlined />}>Đổi ảnh đại diện</Button>
-            </Upload>
+            {!readOnly && (
+              <Upload
+                beforeUpload={handleUpload}
+                showUploadList={false}
+                accept="image/*"
+              >
+                <Button icon={<UploadOutlined />}>Đổi ảnh đại diện</Button>
+              </Upload>
+            )}
           </div>
 
           <Divider orientation="left">Thông tin cơ bản</Divider>
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="maNhanVien" // employee_code
+                name="maNhanVien"
                 label="Mã nhân viên"
                 rules={[
                   { required: true, message: "Vui lòng nhập mã nhân viên" },
                 ]}
               >
-                <Input placeholder="VD: E001" />
+                {RO("maNhanVien", <Input placeholder="VD: E001" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item
-                name="hoTen" // full_name
+                name="hoTen"
                 label="Họ và tên"
                 rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
               >
-                <Input placeholder="VD: Nguyễn Văn A" />
+                {RO("hoTen", <Input placeholder="VD: Nguyễn Văn A" />)}
               </Form.Item>
             </Col>
           </Row>
@@ -164,11 +240,11 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="email" // full_name
+                name="email"
                 label="Email"
                 rules={[{ required: true, message: "Vui lòng nhập email" }]}
               >
-                <Input placeholder="VD: thubui@gmail.com" />
+                {RO("email", <Input placeholder="VD: thubui@gmail.com" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -177,11 +253,14 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Giới tính"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <Select placeholder="Chọn giới tính">
-                  <Select.Option value="Nam">Nam</Select.Option>
-                  <Select.Option value="Nữ">Nữ</Select.Option>
-                  <Select.Option value="Khác">Khác</Select.Option>
-                </Select>
+                {RO(
+                  "gioiTinh",
+                  <Select placeholder="Chọn giới tính">
+                    <Select.Option value="Nam">Nam</Select.Option>
+                    <Select.Option value="Nữ">Nữ</Select.Option>
+                    <Select.Option value="Khác">Khác</Select.Option>
+                  </Select>
+                )}
               </Form.Item>
             </Col>
           </Row>
@@ -193,7 +272,15 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày sinh"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <DatePicker className="w-full" format="YYYY-MM-DD" />
+                {RO(
+                  "ngaySinh",
+                  <DatePicker
+                    className="w-full"
+                    format="YYYY-MM-DD"
+                    placeholder="YYYY-MM-DD"
+                  />,
+                  fmtDate
+                )}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -202,11 +289,10 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="CMT/CCCD"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <Input placeholder="Số CMT/CCCD" />
+                {RO("cccd", <Input placeholder="Số CMT/CCCD" />)}
               </Form.Item>
             </Col>
           </Row>
-
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
@@ -214,7 +300,7 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Số điện thoại"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <Input placeholder="VD: 0912345678" />
+                {RO("soDienThoai", <Input placeholder="VD: 0912345678" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -223,7 +309,15 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày vào làm"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <DatePicker className="w-full" format="YYYY-MM-DD" />
+                {RO(
+                  "ngayVaoLam",
+                  <DatePicker
+                    className="w-full"
+                    format="YYYY-MM-DD"
+                    placeholder="YYYY-MM-DD"
+                  />,
+                  fmtDate
+                )}
               </Form.Item>
             </Col>
           </Row>
@@ -235,7 +329,7 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Phòng ban"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <Input placeholder="VD: PB Kế Toán" />
+                {RO("phongBan", <Input placeholder="VD: PB Kế Toán" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -244,7 +338,7 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Chức vụ"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                <Input placeholder="VD: Trưởng phòng" />
+                {RO("chucVu", <Input placeholder="VD: Trưởng phòng" />)}
               </Form.Item>
             </Col>
           </Row>
@@ -253,12 +347,12 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="luongCoBan" label="Lương cơ bản">
-                <Input placeholder="VD: 15,000,000" />
+                {RO("luongCoBan", <Input placeholder="VD: 15,000,000" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="phuCapSinhHoat" label="Phụ cấp sinh hoạt">
-                <Input placeholder="VD: 2,000,000" />
+                {RO("phuCapSinhHoat", <Input placeholder="VD: 2,000,000" />)}
               </Form.Item>
             </Col>
           </Row>
@@ -266,12 +360,12 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="nganHang" label="Ngân hàng">
-                <Input placeholder="VD: Vietcombank" />
+                {RO("nganHang", <Input placeholder="VD: Vietcombank" />)}
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="soTu" label="Người phụ thuộc">
-                <Input placeholder="VD: 2" />
+                {RO("soTu", <Input placeholder="VD: 2" />)}
               </Form.Item>
             </Col>
           </Row>
@@ -279,15 +373,23 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="trangThaiBaoHiem" label="Trạng thái bảo hiểm">
-                <Select placeholder="Chọn trạng thái">
-                  <Select.Option value="active">Đang tham gia</Select.Option>
-                  <Select.Option value="inactive">Chưa tham gia</Select.Option>
-                </Select>
+                {RO(
+                  "trangThaiBaoHiem",
+                  <Select placeholder="Chọn trạng thái">
+                    <Select.Option value="active">Đang tham gia</Select.Option>
+                    <Select.Option value="inactive">
+                      Chưa tham gia
+                    </Select.Option>
+                  </Select>
+                )}
               </Form.Item>
             </Col>
             <Col span={12}>
               <Form.Item name="chiNhanhCongDoan" label="Chi nhánh công đoàn">
-                <Input placeholder="VD: Chi nhánh A" />
+                {RO(
+                  "chiNhanhCongDoan",
+                  <Input placeholder="VD: Chi nhánh A" />
+                )}
               </Form.Item>
             </Col>
           </Row>
