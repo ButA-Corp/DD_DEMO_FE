@@ -35,6 +35,7 @@ const EmployeeListPage = () => {
   const [deleteAccount] = useDeleteAccountMutation();
 
   const handleViewDetail = (id) => {
+    console.log(id);
     setSelectedAccount(id);
     setOpenDetailModal(true);
   };
@@ -45,7 +46,7 @@ const EmployeeListPage = () => {
   };
 
   const columns = employeeListColumns({
-    onViewDetail: handleViewDetail,
+    onViewDetail: (id) => handleViewDetail(id),
     onDelete: handleDelete,
     currentPage: pagination.current,
     pageSize: pagination.pageSize,
@@ -57,6 +58,11 @@ const EmployeeListPage = () => {
       CodeEmployeeOrFullName: value?.maNhanVien || value?.hoTen,
     };
     setQuery({ ...DEFAULT_QUERY, ...payload });
+  };
+
+  const resetAll = () => {
+    setOpenDetailModal(false);
+    setSelectedAccount(null);
   };
 
   return (
@@ -155,7 +161,7 @@ const EmployeeListPage = () => {
 
       <AddEmployeeDrawer
         open={openDetailModal}
-        onClose={() => setOpenDetailModal(false)}
+        onClose={resetAll}
         readOnly={!!selectedAccount}
         id={selectedAccount}
       />
