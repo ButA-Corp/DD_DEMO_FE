@@ -112,8 +112,9 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
   }, [open, id]);
 
   useEffect(() => {
-    form.setFieldsValue(normalizeInitialAccDetail(accDetail, readOnly));
-    console.log("Set form values:", normalizeInitialAccDetail(accDetail));
+    form.setFieldsValue(
+      normalizeInitialAccDetail(accDetail?.nhanVien, readOnly)
+    );
   }, [accDetail, isLoading]);
 
   // …giữ nguyên phần import/props/state

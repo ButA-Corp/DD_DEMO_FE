@@ -84,7 +84,7 @@ export const handleApiOperation = async ({
 
 export const normalizeInitialAccDetail = (apiAccount) => {
   if (!apiAccount) return {};
-  const nv = apiAccount?.nhanVien || {};
+  const nv = apiAccount || {};
 
   return {
     // ảnh nếu có
