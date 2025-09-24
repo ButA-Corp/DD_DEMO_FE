@@ -1,52 +1,55 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Layout, Tag, Button, Space, Spin } from "antd";
-import { ProFormSelect, ProTable } from "@ant-design/pro-components";
-import { UserOutlined } from "@ant-design/icons";
-import { mockUsers } from "../constants";
-import { accountListColumns } from "../utils/tables/AccountListColumns";
-import { paginationToOffsetLimit } from "../utils/tables/AccountListColumns";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { AddAccountsButton } from "../components/accounts/AddAccountsButton";
-import AddAccountModal from "../components/accounts/AddAccountModal";
-import ImportAccountModal from "../components/accounts/ImportAccountModal";
-import AccountDetailDrawer from "../components/accounts/AccountDetail.jsx";
-import AddEmployeeDrawer from "../components/employee/AddEmployeeDrawer.jsx";
-import {
-  useGetAccountsQuery,
-  useDeleteAccountMutation,
-  useGetEmployeesQuery,
-} from "../apis/index.js";
+import { Layout, Button, Space } from "antd";
+import { ProTable } from "@ant-design/pro-components";
+import { UserOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { employeeListColumns } from "../utils/tables/EmployeeListColumns.jsx";
+import {
+  useGetEmployeesQuery,
+  useDeleteAccountMutation,
+} from "../apis/index.js";
+import ImportAccountModal from "../components/accounts/ImportAccountModal";
+import AddEmployeeDrawer from "../components/employee/AddEmployeeDrawer.jsx";
+import { hasPermission } from "../utils/role_helper"; // <-- authorization helper
 
-const { Header, Footer, Content } = Layout;
+const { Header, Content } = Layout;
 
 const DEFAULT_QUERY = {
   PageNumber: 1,
   limit: 10,
 };
 
-const EmployeeListPage = () => {
-  // const navigate = useNavigate();
-  const [openModal, setOpenModal] = useState(false);
-  const [openImport, setOpenImport] = useState(false);
+const role = localStorage.getItem("role"); // Read role from storage
 
+const EmployeeListPage = () => {
+  const [openImport, setOpenImport] = useState(false);
   const [query, setQuery] = useState(DEFAULT_QUERY);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
 
-  const { data, error, isLoading } = useGetEmployeesQuery(query, {
+  const { data, isLoading } = useGetEmployeesQuery(query, {
     refetchOnMountOrArgChange: true,
   });
+
   const [deleteAccount] = useDeleteAccountMutation();
 
+  const handleViewDetail = (id) => {
+    setSelectedAccount(id);
+    setOpenDetailModal(true);
+  };
+
+  const handleDelete = (id) => {
+    console.log("Delete employee ID:", id);
+    // optional: call delete mutation
+  };
+
   const columns = employeeListColumns({
-    onViewDetail: (id) => setSelectedAccount(id),
-    onClone: (id) => console.log(id),
+    onViewDetail: handleViewDetail,
+    onDelete: handleDelete,
     currentPage: pagination.current,
     pageSize: pagination.pageSize,
+    role, // pass role to columns
   });
 
   const onSubmit = (value) => {
@@ -68,13 +71,18 @@ const EmployeeListPage = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setOpenDetailModal(true)}
-          >
-            Thêm nhân viên
-          </Button>
+          {hasPermission(role, "AddEmployee") && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setSelectedAccount(null); // Add mode
+                setOpenDetailModal(true);
+              }}
+            >
+              Thêm nhân viên
+            </Button>
+          )}
         </div>
       </Header>
 
@@ -91,7 +99,7 @@ const EmployeeListPage = () => {
               pageSize: pagination.pageSize,
               showTotal: false,
             }}
-            headerTitle="Danh sách tài khoản"
+            headerTitle="Danh sách nhân viên"
             toolBarRender={false}
             loading={isLoading}
             search={{
@@ -99,28 +107,26 @@ const EmployeeListPage = () => {
               resetText: "Xoá tìm kiếm",
               labelWidth: 0,
               defaultCollapsed: true,
-              optionRender: (formProps) => {
-                return [
-                  <Button
-                    key="reset"
-                    onClick={() => {
-                      formProps?.form?.resetFields();
-                      setQuery(DEFAULT_QUERY);
-                    }}
-                  >
-                    Xoá tìm kiếm
-                  </Button>,
-                  <Button
-                    key="submit"
-                    type="default"
-                    style={{ borderColor: "#eb2f96", color: "#eb2f96" }}
-                    onClick={() => formProps?.form?.submit()}
-                  >
-                    <SearchOutlined />
-                    Tìm kiếm
-                  </Button>,
-                ];
-              },
+              optionRender: (formProps) => [
+                <Button
+                  key="reset"
+                  onClick={() => {
+                    formProps?.form?.resetFields();
+                    setQuery(DEFAULT_QUERY);
+                  }}
+                >
+                  Xoá tìm kiếm
+                </Button>,
+                <Button
+                  key="submit"
+                  type="default"
+                  style={{ borderColor: "#eb2f96", color: "#eb2f96" }}
+                  onClick={() => formProps?.form?.submit()}
+                >
+                  <SearchOutlined />
+                  Tìm kiếm
+                </Button>,
+              ],
             }}
             onChange={(pg) => {
               const { current, pageSize } = pg;
@@ -136,24 +142,21 @@ const EmployeeListPage = () => {
         </div>
       </Content>
 
-      <AddAccountModal open={openModal} onCancel={() => setOpenModal(false)} />
-      <ImportAccountModal
-        open={openImport}
-        onCancel={() => setOpenImport(false)}
-        onSubmit={(data) => {
-          console.log("Danh sách import:", data);
-          setOpenImport(false);
-        }}
-      />
-      {/* <AccountDetailDrawer
-        open={!!selectedAccount}
-        account={selectedAccount}
-        onClose={() => setSelectedAccount(null)}
-      /> */}
+      {hasPermission(role, "ImportEmployee") && (
+        <ImportAccountModal
+          open={openImport}
+          onCancel={() => setOpenImport(false)}
+          onSubmit={(data) => {
+            console.log("Danh sách import:", data);
+            setOpenImport(false);
+          }}
+        />
+      )}
+
       <AddEmployeeDrawer
         open={openDetailModal}
         onClose={() => setOpenDetailModal(false)}
-        readOnly={selectedAccount}
+        readOnly={!!selectedAccount}
         id={selectedAccount}
       />
     </Layout>
