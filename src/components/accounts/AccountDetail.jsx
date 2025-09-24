@@ -128,11 +128,6 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
       editable
     );
 
-  // formatter ngày
-  const fmtDate = (d) => {
-    return d ? d.format?.("YYYY-MM-DD") ?? d : "";
-  };
-
   return (
     <Drawer
       title={<h2>{title}</h2>}
@@ -234,15 +229,12 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày sinh"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                {RO(
-                  "ngaySinh",
-                  <DatePicker
-                    className="w-full"
-                    format="YYYY-MM-DD"
-                    placeholder="YYYY-MM-DD"
-                  />,
-                  fmtDate
-                )}
+                <DatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                  placeholder="YYYY-MM-DD"
+                  disabled={readOnly}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -272,15 +264,12 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày vào làm"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                {RO(
-                  "ngayVaoLam",
-                  <DatePicker
-                    className="w-full"
-                    format="YYYY-MM-DD"
-                    placeholder="YYYY-MM-DD"
-                  />,
-                  fmtDate
-                )}
+                <DatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                  placeholder="YYYY-MM-DD"
+                  disabled={readOnly}
+                />
               </Form.Item>
             </Col>
           </Row>
