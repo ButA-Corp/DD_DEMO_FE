@@ -114,6 +114,9 @@ export const accountListColumns = ({
           type="link"
           icon={<EditOutlined />}
           onClick={() => onEdit(record?.id)}
+          disabled={[STATUS_ENUM.INACTIVE]?.includes(
+            record?.trangThai
+          )}
         >
           Sửa
         </Button>,

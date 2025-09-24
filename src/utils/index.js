@@ -95,10 +95,10 @@ export const normalizeInitialAccDetail = (apiAccount, readOnly) => {
     hoTen: nv.hoTen ?? "",
     email: nv.email ?? "",
     gioiTinh: nv.gioiTinh ?? undefined, // Select
-    ngaySinh: readOnly ? nv.ngaySinh ? (safeDate(nv.ngaySinh))?.format('YYYY-MM-DD') : (safeDate(nv.ngaySinh)) : (safeDate(nv.ngaySinh)), // DatePicker
+    ngaySinh: readOnly ? nv.ngaySinh ? (safeDate(nv.ngaySinh))?.format('YYYY-MM-DD') : (safeDate(nv.ngaySinh)) : undefined, // DatePicker
     cccd: nv.cccd ?? "",
     soDienThoai: nv.soDienThoai ?? "",
-    ngayVaoLam: readOnly ? nv.ngayVaoLam ? (safeDate(nv.ngayVaoLam))?.format('YYYY-MM-DD') : (safeDate(nv.ngayVaoLam)) : (safeDate(nv.ngayVaoLam)), // DatePicker
+    ngayVaoLam: readOnly ? nv.ngayVaoLam ? (safeDate(nv.ngayVaoLam))?.format('YYYY-MM-DD') : (safeDate(nv.ngayVaoLam)) : undefined, // DatePicker
     phongBan: nv.phongBan ?? "",
     chucVu: nv.chucVu ?? "",
 

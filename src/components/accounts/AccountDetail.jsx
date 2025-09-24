@@ -234,7 +234,7 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
               >
                 {RO(
                   "ngaySinh",
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />,
+                  <DatePicker className="w-full" format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />,
                   fmtDate
                 )}
               </Form.Item>
@@ -268,7 +268,7 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
               >
                 {RO(
                   "ngayVaoLam",
-                  <DatePicker className="w-full" format="YYYY-MM-DD" />,
+                  <DatePicker className="w-full" format="YYYY-MM-DD" placeholder="YYYY-MM-DD" />,
                   fmtDate
                 )}
               </Form.Item>
