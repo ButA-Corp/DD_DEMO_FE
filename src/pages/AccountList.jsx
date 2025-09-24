@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout, Button } from "antd";
 import { ProTable } from "@ant-design/pro-components";
 import { UserOutlined, SearchOutlined } from "@ant-design/icons";
@@ -17,7 +17,6 @@ import { hasPermission } from "../utils/role_helper";
 
 const { Header, Content } = Layout;
 const DEFAULT_QUERY = { PageNumber: 1, limit: 10 };
-const role = localStorage.getItem("role");
 
 const AccountListPage = () => {
   const [openModal, setOpenModal] = useState(false);
@@ -27,9 +26,16 @@ const AccountListPage = () => {
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [readOnly, setReadOnly] = useState(false);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) setRole(storedRole);
+  }, []);
 
   const { data, isLoading } = useGetAccountsQuery(query, {
     refetchOnMountOrArgChange: true,
+    skip: !role, // don't call API until role is available
   });
 
   const [deleteAccount] = useDeleteAccountMutation();
@@ -60,15 +66,17 @@ const AccountListPage = () => {
     setReadOnly(false);
   };
 
-  const columns = accountListColumns({
-    onViewDetail: handleViewDetail,
-    onEdit: handleEdit,
-    onDelete: handleDelete,
-    onLock: handleLock,
-    currentPage: pagination.current,
-    pageSize: pagination.pageSize,
-    role, // important!
-  });
+  const columns = role
+    ? accountListColumns({
+        onViewDetail: handleViewDetail,
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onLock: handleLock,
+        currentPage: pagination.current,
+        pageSize: pagination.pageSize,
+        role,
+      })
+    : [];
 
   const onSubmit = (value) => {
     setQuery({
@@ -77,6 +85,8 @@ const AccountListPage = () => {
       Status: value?.trangThai,
     });
   };
+
+  if (!role) return null; // avoid rendering until role is available
 
   return (
     <Layout className="min-h-screen bg-gray-50 mt-16">

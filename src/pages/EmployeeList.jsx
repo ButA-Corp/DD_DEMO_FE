@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
-import { Layout, Button, Space } from "antd";
+import React, { useState, useEffect } from "react";
+import { Layout, Button } from "antd";
 import { ProTable } from "@ant-design/pro-components";
 import { UserOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
 import { employeeListColumns } from "../utils/tables/EmployeeListColumns.jsx";
@@ -10,7 +10,7 @@ import {
 } from "../apis/index.js";
 import ImportAccountModal from "../components/accounts/ImportAccountModal";
 import AddEmployeeDrawer from "../components/employee/AddEmployeeDrawer.jsx";
-import { hasPermission } from "../utils/role_helper"; // <-- authorization helper
+import { hasPermission } from "../utils/role_helper";
 
 const { Header, Content } = Layout;
 
@@ -19,18 +19,24 @@ const DEFAULT_QUERY = {
   limit: 10,
 };
 
-const role = localStorage.getItem("role"); // Read role from storage
-
 const EmployeeListPage = () => {
   const [openImport, setOpenImport] = useState(false);
   const [query, setQuery] = useState(DEFAULT_QUERY);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    const storedRole = localStorage.getItem("role");
+    if (storedRole) setRole(storedRole);
+  }, []);
 
   const { data, isLoading } = useGetEmployeesQuery(query, {
     refetchOnMountOrArgChange: true,
+    skip: !role, // ✅ avoid calling hook before role is loaded
   });
+
 
   const [deleteAccount] = useDeleteAccountMutation();
 
@@ -49,7 +55,7 @@ const EmployeeListPage = () => {
     onDelete: handleDelete,
     currentPage: pagination.current,
     pageSize: pagination.pageSize,
-    role, // pass role to columns
+    role,
   });
 
   const onSubmit = (value) => {
@@ -58,6 +64,7 @@ const EmployeeListPage = () => {
     };
     setQuery({ ...DEFAULT_QUERY, ...payload });
   };
+  if (!role) return null;
 
   return (
     <Layout className="min-h-screen bg-gray-50 mt-16">
@@ -76,7 +83,7 @@ const EmployeeListPage = () => {
               type="primary"
               icon={<PlusOutlined />}
               onClick={() => {
-                setSelectedAccount(null); // Add mode
+                setSelectedAccount(null);
                 setOpenDetailModal(true);
               }}
             >
