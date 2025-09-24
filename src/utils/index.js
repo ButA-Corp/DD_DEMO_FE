@@ -82,7 +82,7 @@ export const handleApiOperation = async ({
   }
 };
 
-export const normalizeInitialAccDetail = (apiAccount, readOnly) => {
+export const normalizeInitialAccDetail = (apiAccount) => {
   if (!apiAccount) return {};
   const nv = apiAccount?.nhanVien || {};
 
@@ -95,18 +95,11 @@ export const normalizeInitialAccDetail = (apiAccount, readOnly) => {
     hoTen: nv.hoTen ?? "",
     email: nv.email ?? "",
     gioiTinh: nv.gioiTinh ?? undefined, // Select
-    ngaySinh: readOnly
-      ? nv.ngaySinh
-      : nv.ngaySinh
-      ? dayjs(nv.ngaySinh, "YYYY-MM-DD")
-      : null, // DatePicker
+    ngaySinh: nv.ngaySinh ? dayjs(nv.ngaySinh, "YYYY-MM-DD") : null, // DatePicker
     cccd: nv.cccd ?? "",
     soDienThoai: nv.soDienThoai ?? "",
-    ngayVaoLam: readOnly
-      ? nv.ngayVaoLam
-      : nv.ngayVaoLam
-      ? dayjs(nv.ngayVaoLam, "YYYY-MM-DD")
-      : null,
+    ngayVaoLam: nv.ngayVaoLam ? dayjs(nv.ngayVaoLam, "YYYY-MM-DD") : null,
+
     phongBan: nv.phongBan ?? "",
     chucVu: nv.chucVu ?? "",
 

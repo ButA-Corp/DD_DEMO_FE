@@ -35,26 +35,6 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
   const [accDetail, setAccDetail] = useState();
 
   // Format date for read-only display (accepts dayjs or string)
-  const fmtDate = (d) => {
-    if (d === null || d === undefined || d === "") return "";
-    // dayjs object
-    if (dayjs.isDayjs && dayjs.isDayjs(d)) {
-      return d.isValid() ? d.format("YYYY-MM-DD") : "";
-    }
-    // native Date
-    if (d instanceof Date) {
-      const dd = dayjs(d);
-      return dd.isValid() ? dd.format("YYYY-MM-DD") : "";
-    }
-    // number (timestamp)
-    if (typeof d === "number") {
-      const dd = dayjs(d);
-      return dd.isValid() ? dd.format("YYYY-MM-DD") : String(d);
-    }
-    // string (try parse)
-    const parsed = dayjs(String(d));
-    return parsed.isValid() ? parsed.format("YYYY-MM-DD") : String(d);
-  };
 
   const fetchAccDetail = async () => {
     if (!id) return;
@@ -272,15 +252,12 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày sinh"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                {RO(
-                  "ngaySinh",
-                  <DatePicker
-                    className="w-full"
-                    format="YYYY-MM-DD"
-                    placeholder="YYYY-MM-DD"
-                  />,
-                  fmtDate
-                )}
+                <DatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                  placeholder="YYYY-MM-DD"
+                  disabled={readOnly}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -309,15 +286,12 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
                 label="Ngày vào làm"
                 rules={[{ required: true, message: "Vui lòng nhập" }]}
               >
-                {RO(
-                  "ngayVaoLam",
-                  <DatePicker
-                    className="w-full"
-                    format="YYYY-MM-DD"
-                    placeholder="YYYY-MM-DD"
-                  />,
-                  fmtDate
-                )}
+                <DatePicker
+                  className="w-full"
+                  format="YYYY-MM-DD"
+                  placeholder="YYYY-MM-DD"
+                  disabled={readOnly}
+                />
               </Form.Item>
             </Col>
           </Row>
