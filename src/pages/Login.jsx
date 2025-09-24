@@ -24,6 +24,7 @@ function Login({ onLogin }) {
       }
       if (res.data?.accessToken) {
         localStorage.setItem("token", res.data.accessToken);
+        localStorage.setItem("role", res.data.role);
         message.success("Login thành công!");
         onLogin(); // callback để redirect sang main app
       } else {
