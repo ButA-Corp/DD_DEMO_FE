@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Form, Input, Button, Card, message } from "antd";
-import {
-  useLoginMutation,
-} from "../apis/index.js";
+import { useLoginMutation } from "../apis/index.js";
+import { useNavigate } from "react-router-dom";
 
 function Login({ onLogin }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [login] = useLoginMutation();
   const [errorMsg, setErrorMsg] = useState("");
@@ -18,7 +18,7 @@ function Login({ onLogin }) {
         username: values.username,
         password: values.password,
       });
-      if(res.error?.status === 401) {
+      if (res.error?.status === 401) {
         setErrorMsg("Sai tài khoản hoặc mật khẩu");
         return;
       }
@@ -26,6 +26,7 @@ function Login({ onLogin }) {
         localStorage.setItem("token", res.data.accessToken);
         localStorage.setItem("role", res.data.role);
         message.success("Login thành công!");
+        navigate("/home");
         onLogin(); // callback để redirect sang main app
       } else {
         setErrorMsg("Sai tài khoản hoặc mật khẩu");
@@ -60,12 +61,7 @@ function Login({ onLogin }) {
             <Input.Password placeholder="Nhập password" />
           </Form.Item>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            block
-            loading={loading}
-          >
+          <Button type="primary" htmlType="submit" block loading={loading}>
             Login
           </Button>
         </Form>
