@@ -46,6 +46,8 @@ const AccountDetailDrawer = ({ open, onClose, readOnly, id }) => {
       
       if (response?.item?.nhanVien?.anhDaiDien) {
         setProfileImage("https://localhost:7286/" + response.item.nhanVien.anhDaiDien);
+      } else {
+        setProfileImage(null);
       }
       setAccDetail(response?.item);
     } catch (error) {
