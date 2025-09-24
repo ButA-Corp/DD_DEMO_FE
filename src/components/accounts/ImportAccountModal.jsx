@@ -136,26 +136,31 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       const response = await importAccounts(data).unwrap();
       console.log(response);
 
-      if (response?.status === 200) {
-        notification.success({
-          message: "Success",
-          description: ` thành công!`,
-        });
+      if (response?.errors?.$values?.length === 0) {
+        message.success("Import thành công");
+        onSubmit();
       } else {
-        notification.error({
-          message: "Error",
-          description: `${response?.data?.message}!`,
-        });
+        const buildSummary = (data, totalSuccess) => {
+          let total = data?.length + totalSuccess || 0;
+          let failed = data?.length;
+          let success = totalSuccess;
+
+          return {
+            total,
+            success,
+            failed,
+            details: data, // giữ lại để hiển thị chi tiết nếu cần
+          };
+        };
+
+        setSummary(
+          buildSummary(response?.errors?.$values, response?.totalSuccess)
+        );
       }
     } catch (err) {
-      console.log("Error:", err);
-      notification.error({
-        message: "Error",
-        description: "Thất bại",
-      });
+      message.error("Có lỗi xảy ra! Vui lòng thử lại.");
       return false;
     }
-    onSubmit();
   };
 
   const columns = [...requiredColumns, ...optionalColumns].map((col) => ({
@@ -198,7 +203,6 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
               message.error("Không thể import do có dữ liệu lỗi");
             } else {
               handleSubmit(parsedData.map(({ _rowErrors, ...rest }) => rest));
-              // gửi dữ liệu đã map theo cột TV; bỏ trường _rowErrors khi submit
             }
           }}
         >
@@ -222,22 +226,28 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
       {summary && (
         <Alert
           className="mb-4"
-          icon={<FileDoneOutlined />}
           message={
             <div>
               <p>
-                Tổng số bản ghi: <b>{summary.total}</b>
+                Tổng số bản ghi: <b>{summary?.total}</b>
               </p>
               <p className="text-green-600">
-                Thành công: <b>{summary.success}</b>
+                {summary?.details?.length ? "Thành công" : "Hợp lệ"}:{" "}
+                <b>{summary?.success}</b>
               </p>
               <p className="text-red-600">
-                Thất bại: <b>{summary.failed}</b>
+                {summary?.details?.length ? "Thất bại" : "Không hợp lệ"}:{" "}
+                <b>{summary?.failed}</b>
               </p>
+
+              {summary?.details?.map((item, idx) => (
+                <div key={idx} className="text-red-500">
+                  Dòng {item?.line}: {item?.errors}
+                </div>
+              ))}
             </div>
           }
-          type={summary.failed > 0 ? "warning" : "success"}
-          showIcon
+          type={summary?.failed > 0 ? "warning" : "success"}
         />
       )}
 
