@@ -16,8 +16,9 @@ import AddEmployeeDrawer from "../components/employee/AddEmployeeDrawer.jsx";
 import {
   useGetAccountsQuery,
   useDeleteAccountMutation,
+  useGetEmployeesQuery,
 } from "../apis/index.js";
-import { handleApiOperation } from "../utils/index.js";
+import { employeeListColumns } from "../utils/tables/EmployeeListColumns.jsx";
 
 const { Header, Footer, Content } = Layout;
 
@@ -26,7 +27,7 @@ const DEFAULT_QUERY = {
   limit: 10,
 };
 
-const AccountListPage = () => {
+const EmployeeListPage = () => {
   // const navigate = useNavigate();
   const [openModal, setOpenModal] = useState(false);
   const [openImport, setOpenImport] = useState(false);
@@ -35,61 +36,22 @@ const AccountListPage = () => {
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
-  const [readOnly, setReadOnly] = useState(false);
 
-  const { data, error, isLoading } = useGetAccountsQuery(query, {
+  const { data, error, isLoading } = useGetEmployeesQuery(query, {
     refetchOnMountOrArgChange: true,
   });
   const [deleteAccount] = useDeleteAccountMutation();
 
-  const handleDelete = (id) => {
-    const params = {
-      id,
-      mode: "delete",
-    };
-    handleApiOperation({
-      asyncResult: deleteAccount(params).unwrap(),
-      alertMessage: "Xoá tài khoản",
-    });
-  };
-
-  const handleLock = (id) => {
-    const params = {
-      id,
-      mode: "lock",
-    };
-    handleApiOperation({
-      asyncResult: deleteAccount(params).unwrap(),
-      alertMessage: "Khoá tài khoản",
-    });
-  };
-
-  const handleViewDetail = (id) => {
-    console.log(id);
-    setSelectedAccount(id);
-    setOpenDetailModal(true);
-    setReadOnly(true);
-  };
-  const handleEdit = (id) => {
-    console.log(id);
-    setSelectedAccount(id);
-    setOpenDetailModal(true);
-    setReadOnly(false);
-  };
-
-  const columns = accountListColumns({
-    onViewDetail: (id) => handleViewDetail(id),
-    onDelete: (id) => handleDelete(id),
-    onEdit: (id) => handleEdit(id),
-    onLock: (id) => handleLock(id),
+  const columns = employeeListColumns({
+    onViewDetail: (id) => setSelectedAccount(id),
+    onClone: (id) => console.log(id),
     currentPage: pagination.current,
     pageSize: pagination.pageSize,
   });
 
   const onSubmit = (value) => {
     const payload = {
-      UserNameOrFullName: value?.tenDangNhap || value?.fullname,
-      Status: value?.trangThai,
+      CodeEmployeeOrFullName: value?.maNhanVien || value?.hoTen,
     };
     setQuery({ ...DEFAULT_QUERY, ...payload });
   };
@@ -101,15 +63,18 @@ const AccountListPage = () => {
         <div className="flex items-center space-x-2">
           <UserOutlined className="text-xl text-blue-600" />
           <h1 className="text-lg font-semibold text-gray-800">
-            Quản lý tài khoản
+            Quản lý nhân viên
           </h1>
         </div>
 
         <div className="flex gap-2">
-          <AddAccountsButton
-            addAccount={() => setOpenModal(true)}
-            importAccounts={() => setOpenImport(true)}
-          />
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setOpenDetailModal(true)}
+          >
+            Thêm nhân viên
+          </Button>
         </div>
       </Header>
 
@@ -133,7 +98,7 @@ const AccountListPage = () => {
               searchText: "Tìm kiếm",
               resetText: "Xoá tìm kiếm",
               labelWidth: 0,
-              defaultCollapsed: false,
+              defaultCollapsed: true,
               optionRender: (formProps) => {
                 return [
                   <Button
@@ -185,14 +150,14 @@ const AccountListPage = () => {
         account={selectedAccount}
         onClose={() => setSelectedAccount(null)}
       /> */}
-      <AccountDetailDrawer
+      <AddEmployeeDrawer
         open={openDetailModal}
         onClose={() => setOpenDetailModal(false)}
-        readOnly={readOnly}
+        readOnly={selectedAccount}
         id={selectedAccount}
       />
     </Layout>
   );
 };
 
-export default AccountListPage;
+export default EmployeeListPage;

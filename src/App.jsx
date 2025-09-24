@@ -4,16 +4,18 @@ import AccountList from "./pages/AccountList";
 import { Layout } from "antd";
 import AppHeader from "./components/AppHeader";
 import AppFooter from "./components/AppFooter";
+import EmployeeListPage from "./pages/EmployeeList";
 import Login from "./pages/Login";
 
 const { Content } = Layout;
 
 function App() {
+  const [activeTab, setActiveTab] = useState("accounts");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   // const [activeTab, setActiveTab] = useState("accounts");
 
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
     }
@@ -34,9 +36,9 @@ function App() {
 
   return (
     <Layout className="min-h-screen overflow-hidden">
-      {/* <AppHeader activeKey={activeTab} onChange={setActiveTab} /> */}
+      <AppHeader activeKey={activeTab} onChange={setActiveTab} />
       <Content>
-        <AccountList />
+        {activeTab === "accounts" ? <AccountList /> : <EmployeeListPage />}
       </Content>
       <AppFooter />
     </Layout>

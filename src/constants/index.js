@@ -63,26 +63,26 @@ export const STATUS_STYLES = {
 
 export const STATUS_OPTIONS = [
   { value: STATUS_ENUM.ALL, label: STATUS_TEXT.ALL },
-  { value: STATUS_ENUM.ACTIVE, label: STATUS_TEXT.ACTIVE },
-  { value: STATUS_ENUM.INACTIVE, label: STATUS_TEXT.INACTIVE },
-  { value: STATUS_ENUM.LOCKED, label: STATUS_TEXT.LOCKED },
+  { value: STATUS_ENUM.ACTIVE, label: STATUS_TEXT.Active },
+  { value: STATUS_ENUM.INACTIVE, label: STATUS_TEXT.Inactive },
+  { value: STATUS_ENUM.LOCKED, label: STATUS_TEXT.Locked },
 ];
 
 export const ACCOUNT_LABELS = {
-  username: "Tên",
-  password: "Mật khẩu",
-  role: "Vai trò",
-  account_status: "Trạng thái",
-  employee_code: "Mã nhân viên",
-  full_name: "Họ và tên",
-  email: "Email",
-  department_code: "Phòng ban",
-  position_name: "Vị trí",
-  gender: "Giới tính",
-  date_of_birth: "Ngày sinh",
-  address: "Địa chỉ",
-  phone_number: "Số điện thoại",
-  join_date: "Ngày tham gia",
-  level: "Cấp bậc",
-  profile_image: "Ảnh",
+  userName: "Tên đăng nhập", // tenDangNhap
+  password: "Mật khẩu", // matKhau
+  role: "Vai trò", // vaiTro
+  status: "Trạng thái", // trangThai
+  codeEmployee: "Mã nhân viên", // maNhanVien
+  fullName: "Họ và tên", // hoTen
+  email: "Email", // email
+  department: "Phòng ban", // phongBan
+  position: "Chức vụ", // chucVu
+  gender: "Giới tính", // gioiTinh
+  dateOfBirth: "Ngày sinh", // ngaySinh
+  address: "Địa chỉ", // diaChi
+  phoneNumber: "Số điện thoại", // soDienThoai
+  startDate: "Ngày vào làm", // ngayVaoLam
+  rank: "Cấp bậc", // capBac
+  profileImage: "Ảnh đại diện", // anhDaiDien
 };

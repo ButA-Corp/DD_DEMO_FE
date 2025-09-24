@@ -15,9 +15,17 @@ import {
   STATUS_ENUM,
 } from "../../constants";
 
+const valueEnum = {
+  Admin: { text: "Admin" },
+  Manager: { text: "Quản lý" },
+  User: { text: "Người dùng" },
+};
+
 export const accountListColumns = ({
   onViewDetail,
+  onDelete,
   onEdit,
+  onLock,
   currentPage,
   pageSize,
 }) => {
@@ -34,14 +42,12 @@ export const accountListColumns = ({
       title: "Tên đăng nhập",
       dataIndex: "tenDangNhap",
       key: "tenDangNhap",
-      sorter: true,
       copyable: true,
     },
     {
       title: "Họ tên",
       dataIndex: "fullname",
       key: "fullname",
-      sorter: true,
     },
     {
       title: "Quyền truy cập",
@@ -49,19 +55,16 @@ export const accountListColumns = ({
       key: "vaiTro",
       filters: true,
       onFilter: true,
-      valueEnum: {
-        Admin: { text: "Admin" },
-        "Quản lý": { text: "Quản lý" },
-        "Người dùng": { text: "Người dùng" },
-      },
+      valueEnum,
       render: (_, record) => {
         const color =
           record.vaiTro === "Admin"
             ? "red"
-            : record.vaiTro === "Quản lý"
+            : record.vaiTro === "Manager"
             ? "blue"
             : "green";
-        return <Tag color={color}>{record.vaiTro}</Tag>;
+        const text = valueEnum[record.vaiTro]?.text || record.vaiTro;
+        return <Tag color={color}>{text}</Tag>;
       },
       hideInSearch: true,
     },
@@ -83,10 +86,6 @@ export const accountListColumns = ({
         return (
           <ProFormSelect
             options={STATUS_OPTIONS}
-            fieldProps={{
-              defaultValue: STATUS_ENUM.ALL,
-            }}
-            mode="multiple"
           />
         );
       },
@@ -95,7 +94,6 @@ export const accountListColumns = ({
       title: "Lần cuối đăng nhập",
       dataIndex: "lanDangNhapCuoi",
       key: "lanDangNhapCuoi",
-      sorter: true,
       hideInSearch: true,
     },
     {
@@ -107,7 +105,7 @@ export const accountListColumns = ({
           key="view"
           type="link"
           icon={<EyeOutlined />}
-          onClick={() => onViewDetail(record)}
+          onClick={() => onViewDetail(record?.id)}
         >
           Chi tiết
         </Button>,
@@ -115,7 +113,7 @@ export const accountListColumns = ({
           key="edit"
           type="link"
           icon={<EditOutlined />}
-          onClick={() => onEdit(record)}
+          onClick={() => onEdit(record?.id)}
         >
           Sửa
         </Button>,
@@ -130,11 +128,14 @@ export const accountListColumns = ({
             confirmTitle="Xác nhận khóa tài khoản"
             confirmContent="Bạn có chắc chắn muốn khóa tài khoản này?"
             onConfirm={() => {
-              console.log("Đã xác nhận khóa!");
+              onLock(record?.id);
             }}
             icon={<LockOutlined />}
             type="link"
             danger
+            disabled={[STATUS_ENUM.LOCKED, STATUS_ENUM.INACTIVE]?.includes(
+              record?.trangThai
+            )}
           />
         ),
         <ConfirmActionButton
@@ -142,10 +143,11 @@ export const accountListColumns = ({
           confirmTitle="Xác nhận xoá tài khoản"
           confirmContent="Bạn có chắc chắn muốn xoá tài khoản này?"
           onConfirm={() => {
-            console.log("Đã xác nhận xoá!");
+            onDelete(record?.id);
           }}
           type="link"
           danger
+          disabled={record?.trangThai === STATUS_ENUM.INACTIVE}
           icon={<DeleteOutlined />}
         />,
       ],
@@ -157,6 +159,6 @@ export const accountListColumns = ({
 };
 
 export const paginationToOffsetLimit = (current, pageSize) => ({
-  page: current - 1,
+  PageNumber: current > 1 ? current - 1 : current,
   limit: pageSize,
 });

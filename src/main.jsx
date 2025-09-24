@@ -9,6 +9,7 @@ import "dayjs/locale/vi"; // để format ngày giờ theo tiếng Việt
 import dayjs from "dayjs";
 import { store } from "./store";
 import { App as AntdApp } from "antd";
+import "@ant-design/v5-patch-for-react-19";
 
 dayjs.locale("vi");
 

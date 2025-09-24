@@ -25,10 +25,10 @@ const AddAccountModal = ({ open, onCancel }) => {
       const response = await createAccount(values).unwrap();
       console.log("Form data:", response, response?.data?.message);
 
-      if (response?.status === 200) {
+      if (response?.item) {
         notification.success({
           message: "Success",
-          description: ` thành công!`,
+          description: `Tạo tài khoản thành công!`,
         });
         handleCancel();
       } else {
@@ -39,9 +39,11 @@ const AddAccountModal = ({ open, onCancel }) => {
       }
     } catch (err) {
       console.log("Error:", err);
+      if(err.errorFields?.length > 0) return;
+
       notification.error({
         message: "Error",
-        description: "Thất bại",
+        description: err.data?.message || "Thêm thất bại!",
       });
       return false;
     }
@@ -110,8 +112,8 @@ const AddAccountModal = ({ open, onCancel }) => {
         >
           <Select placeholder="Chọn quyền">
             <Option value="Admin">Admin</Option>
-            <Option value="Manager">Manager</Option>
-            <Option value="User">User</Option>
+            <Option value="Manager">Quản lý</Option>
+            <Option value="User">Người dùng</Option>
           </Select>
         </Form.Item>
 
@@ -122,9 +124,9 @@ const AddAccountModal = ({ open, onCancel }) => {
           rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
         >
           <Select placeholder="Chọn trạng thái">
-            <Option value="Active">Active</Option>
-            <Option value="Inactive">Inactive</Option>
-            <Option value="Locked">Locked</Option>
+            <Option value="Active">Hoạt động</Option>
+            <Option value="Inactive">Không hoạt động</Option>
+            <Option value="Locked">Khoá</Option>
           </Select>
         </Form.Item>
       </Form>

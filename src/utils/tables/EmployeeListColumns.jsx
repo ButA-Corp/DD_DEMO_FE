@@ -1,23 +1,8 @@
-import { ProFormSelect } from "@ant-design/pro-components";
-import { Button, Tag } from "antd";
-import {
-  EyeOutlined,
-  EditOutlined,
-  LockOutlined,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import ConfirmActionButton from "../../components/ConfirmAction";
-
-import {
-  STATUS_OPTIONS,
-  STATUS_STYLES,
-  STATUS_TEXT,
-  STATUS_ENUM,
-} from "../../constants";
+import { Tag, Button } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
 
 export const employeeListColumns = ({
   onViewDetail,
-  onEdit,
   currentPage,
   pageSize,
 }) => {
@@ -26,76 +11,75 @@ export const employeeListColumns = ({
       title: "STT",
       dataIndex: "index",
       valueType: "index",
-      width: 48,
+      width: 60,
       render: (_, __, rowIndex) => (currentPage - 1) * pageSize + rowIndex + 1,
       hideInSearch: true,
     },
     {
-      title: "Tên đăng nhập",
-      dataIndex: "tenDangNhap",
-      key: "tenDangNhap",
+      title: "Mã nhân viên",
+      dataIndex: "maNhanVien",
+      key: "maNhanVien",
       sorter: true,
       copyable: true,
     },
     {
       title: "Họ tên",
-      dataIndex: "fullname",
-      key: "fullname",
+      dataIndex: "hoTen",
+      key: "hoTen",
       sorter: true,
     },
     {
-      title: "Quyền truy cập",
-      dataIndex: "vaiTro",
-      key: "vaiTro",
+      title: "Giới tính",
+      dataIndex: "gioiTinh",
+      key: "gioiTinh",
       filters: true,
       onFilter: true,
-      valueEnum: {
-        Admin: { text: "Admin" },
-        "Quản lý": { text: "Quản lý" },
-        "Người dùng": { text: "Người dùng" },
-      },
-      render: (_, record) => {
-        const color =
-          record.vaiTro === "Admin"
-            ? "red"
-            : record.vaiTro === "Quản lý"
-            ? "blue"
-            : "green";
-        return <Tag color={color}>{record.vaiTro}</Tag>;
+      render: (value) => {
+        if (!value) return "-";
+        const color = value === "Nam" ? "blue" : "pink";
+        return <Tag color={color}>{value}</Tag>;
       },
       hideInSearch: true,
     },
     {
-      title: "Trạng thái",
-      dataIndex: "trangThai",
-      key: "trangThai",
-      filters: true,
-      onFilter: true,
-      render: (_, record) => {
-        return (
-          <Tag className={STATUS_STYLES[record.trangThai]}>
-            {STATUS_TEXT[record.trangThai]}
-          </Tag>
-        );
-      },
-      renderFormItem: (_, { type }) => {
-        if (type === "form") return null;
-        return (
-          <ProFormSelect
-            options={STATUS_OPTIONS}
-            fieldProps={{
-              defaultValue: STATUS_ENUM.ALL,
-            }}
-            mode="multiple"
-          />
-        );
-      },
+      title: "Ngày sinh",
+      dataIndex: "ngaySinh",
+      key: "ngaySinh",
+      sorter: true,
+      render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
+      hideInSearch: true,
     },
     {
-      title: "Lần cuối đăng nhập",
-      dataIndex: "lanDangNhapCuoi",
-      key: "lanDangNhapCuoi",
+      title: "CMT/CCCD",
+      dataIndex: "cccd",
+      key: "cccd",
+      copyable: true,
+      hideInSearch: true,
+    },
+    {
+      title: "Số điện thoại",
+      dataIndex: "soDienThoai",
+      key: "soDienThoai",
+      hideInSearch: true,
+    },
+    {
+      title: "Ngày vào làm",
+      dataIndex: "ngayVaoLam",
+      key: "ngayVaoLam",
       sorter: true,
+      render: (value) => (value ? new Date(value).toLocaleDateString() : "-"),
+      hideInSearch: true,
+    },
+    {
+      title: "Phòng ban",
+      dataIndex: "phongBan",
+      key: "phongBan",
+      hideInSearch: true,
+    },
+    {
+      title: "Chức vụ",
+      dataIndex: "chucVu",
+      key: "chucVu",
       hideInSearch: true,
     },
     {
@@ -107,49 +91,12 @@ export const employeeListColumns = ({
           key="view"
           type="link"
           icon={<EyeOutlined />}
-          onClick={() => onViewDetail(record)}
+          onClick={() => onViewDetail(record?.id)}
         >
           Chi tiết
         </Button>,
-        <Button
-          key="edit"
-          type="link"
-          icon={<EditOutlined />}
-          onClick={() => onEdit(record)}
-        >
-          Sửa
-        </Button>,
-        record.status === "Locked" ? (
-          <Button key="unlock" type="link" icon={<LockOutlined />}>
-            Mở khóa
-          </Button>
-        ) : (
-          <ConfirmActionButton
-            buttonText="Khóa"
-            buttonType="default"
-            confirmTitle="Xác nhận khóa tài khoản"
-            confirmContent="Bạn có chắc chắn muốn khóa tài khoản này?"
-            onConfirm={() => {
-              console.log("Đã xác nhận khóa!");
-            }}
-            icon={<LockOutlined />}
-            type="link"
-            danger
-          />
-        ),
-        <ConfirmActionButton
-          buttonText="Xoá"
-          confirmTitle="Xác nhận xoá tài khoản"
-          confirmContent="Bạn có chắc chắn muốn xoá tài khoản này?"
-          onConfirm={() => {
-            console.log("Đã xác nhận xoá!");
-          }}
-          type="link"
-          danger
-          icon={<DeleteOutlined />}
-        />,
       ],
-      width: 400,
+      width: 120,
       align: "center",
       fixed: "right",
     },
