@@ -1,14 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://4rbwkfw9-5242.asse.devtunnels.ms/api",
+  baseUrl: "https://02503lhg-5242.asse.devtunnels.ms/api",
   prepareHeaders: (headers, { getState }) => {
     // Lấy token từ Redux state hoặc localStorage
     const token =
       getState().auth?.token ||
       localStorage.getItem("token") ||
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbmgiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3NTg2MzY3NzUsImV4cCI6MTc1ODY1NDc3NSwiaWF0IjoxNzU4NjM2Nzc1LCJpc3MiOiJ5b3VyYXBwIiwiYXVkIjoieW91cmFwcF91c2VycyJ9.kgFfVeG10uYvE-JYVmN7PhRGqtewI2w7HRvwzZ7WeN8";
-
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbmgiLCJyb2xlIjoiQWRtaW4iLCJuYmYiOjE3NTg2OTM3MzEsImV4cCI6MTc1ODcxMTczMSwiaWF0IjoxNzU4NjkzNzMxLCJpc3MiOiJ5b3VyYXBwIiwiYXVkIjoieW91cmFwcF91c2VycyJ9.5ssgWKqeSH5Q11aC5HPjxyIK4ZTHvQhQMlwmzVJz-Is";
     if (token) {
       headers.set("authorization", `Bearer ${token}`);
     }
@@ -56,11 +55,50 @@ export const apiSlice = createApi({
       invalidatesTags: ["Account"],
     }),
     deleteAccount: builder.mutation({
-      query: (id) => ({
-        url: `/accounts/${id}`,
+      query: (params) => ({
+        url: `/accounts/${params?.id}?mode=${params?.mode}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Account"],
+    }),
+    getEmployees: builder.query({
+      query: (params) => ({
+        url: "/employees",
+        method: "GET",
+        params,
+      }),
+      providesTags: ["Employees"],
+    }),
+    importAccounts: builder.mutation({
+      query: (body) => ({
+        url: "/accounts/import",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Account"],
+    }),
+    getAccountDetail: builder.query({
+      query: (id) => ({
+        url: `/accounts/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["AccountDetail"],
+    }),
+    createEmployee: builder.mutation({
+      query: (body) => ({
+        url: "/employees",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Employees"],
+    }),
+    uploadProfile: builder.mutation({
+      query: (body, id) => ({
+        url: `/accounts/${id}/upload-profile`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Employees"],
     }),
   }),
 });
@@ -71,4 +109,9 @@ export const {
   useCreateAccountMutation,
   useUpdateAccountMutation,
   useDeleteAccountMutation,
+  useGetEmployeesQuery,
+  useImportAccountsMutation,
+  useLazyGetAccountDetailQuery,
+  useCreateEmployeeMutation,
+  useUploadProfileMutation,
 } = apiSlice;

@@ -1,5 +1,15 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
-import { Modal, Upload, Button, Table, message, Alert, Tooltip } from "antd";
+import {
+  Modal,
+  Upload,
+  Button,
+  Table,
+  message,
+  Alert,
+  Tooltip,
+  notification,
+} from "antd";
 import {
   UploadOutlined,
   FileDoneOutlined,
@@ -8,31 +18,32 @@ import {
 import Papa from "papaparse";
 import { generateTemplateCSV } from "../../utils";
 import { ACCOUNT_LABELS } from "../../constants";
+import {
+  useCreateAccountMutation,
+  useImportAccountsMutation,
+} from "../../apis";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// BẮT BUỘC theo trường tiếng Việt
 const requiredColumns = [
-  "tenDangNhap", // username
-  "matKhau", // password (CSV nhập plain password; backend tự hash)
-  "vaiTro", // role
-  "trangThai", // account_status
-  "maNhanVien", // employee_code
-  "hoTen", // full_name
-  "email", // email (thuộc nhân viên)
-  "phongBan", // department_code
-  "chucVu", // position_name
+  "userName", // tên đăng nhập
+  "password", // mật khẩu (CSV nhập plain; backend sẽ hash)
+  "role", // vai trò
+  "status", // trạng thái tài khoản
+  "codeEmployee", // mã nhân viên
+  "fullName", // họ và tên
+  "email", // email nhân viên
+  "department", // mã phòng ban
+  "position", // chức vụ
 ];
 
-// TÙY CHỌN theo trường tiếng Việt
 const optionalColumns = [
-  "gioiTinh", // gender
-  "ngaySinh", // date_of_birth
-  "diaChi", // address
-  "soDienThoai", // phone_number
-  "ngayVaoLam", // join_date
-  "capBac", // level
-  "anhDaiDien", // profile_image
+  "gender", // giới tính
+  "dateOfBirth", // ngày sinh
+  "address", // địa chỉ
+  "phoneNumber", // số điện thoại
+  "startDate", // ngày vào làm
+  "rank", // cấp bậc
 ];
 
 export default function ImportAccountModal({ open, onCancel, onSubmit }) {
@@ -64,12 +75,12 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
           const rowErrors = {};
 
           // check tenDangNhap trùng / trống
-          if (seenUsernames.has(row.tenDangNhap)) {
-            rowErrors.tenDangNhap = "Tên đăng nhập trùng";
-          } else if (!row.tenDangNhap) {
-            rowErrors.tenDangNhap = "Tên đăng nhập không được để trống";
+          if (seenUsernames.has(row.userName)) {
+            rowErrors.userName = "Tên đăng nhập trùng";
+          } else if (!row.userName) {
+            rowErrors.userName = "Tên đăng nhập không được để trống";
           } else {
-            seenUsernames.add(row.tenDangNhap);
+            seenUsernames.add(row.userName);
           }
 
           // check email
@@ -118,6 +129,35 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
     );
   };
 
+  const [importAccounts] = useImportAccountsMutation();
+
+  const handleSubmit = async (data) => {
+    try {
+      const response = await importAccounts(data).unwrap();
+      console.log(response);
+
+      if (response?.status === 200) {
+        notification.success({
+          message: "Success",
+          description: ` thành công!`,
+        });
+      } else {
+        notification.error({
+          message: "Error",
+          description: `${response?.data?.message}!`,
+        });
+      }
+    } catch (err) {
+      console.log("Error:", err);
+      notification.error({
+        message: "Error",
+        description: "Thất bại",
+      });
+      return false;
+    }
+    onSubmit();
+  };
+
   const columns = [...requiredColumns, ...optionalColumns].map((col) => ({
     title: ACCOUNT_LABELS[col],
     dataIndex: col,
@@ -157,8 +197,8 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
             if (hasError) {
               message.error("Không thể import do có dữ liệu lỗi");
             } else {
+              handleSubmit(parsedData.map(({ _rowErrors, ...rest }) => rest));
               // gửi dữ liệu đã map theo cột TV; bỏ trường _rowErrors khi submit
-              onSubmit(parsedData.map(({ ...rest }) => rest));
             }
           }}
         >
@@ -207,7 +247,9 @@ export default function ImportAccountModal({ open, onCancel, onSubmit }) {
             dataSource={parsedData}
             columns={columns}
             size="small"
-            scroll={{ x: "max-content" }}
+            scroll={{
+              x: 500,
+            }}
             rowKey={(record, idx) => record.tenDangNhap || idx}
             pagination={{ pageSize: 5 }}
           />

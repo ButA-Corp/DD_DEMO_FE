@@ -17,7 +17,9 @@ import {
 
 export const accountListColumns = ({
   onViewDetail,
+  onDelete,
   onEdit,
+  onLock,
   currentPage,
   pageSize,
 }) => {
@@ -107,7 +109,7 @@ export const accountListColumns = ({
           key="view"
           type="link"
           icon={<EyeOutlined />}
-          onClick={() => onViewDetail(record)}
+          onClick={() => onViewDetail(record?.id)}
         >
           Chi tiết
         </Button>,
@@ -115,7 +117,7 @@ export const accountListColumns = ({
           key="edit"
           type="link"
           icon={<EditOutlined />}
-          onClick={() => onEdit(record)}
+          onClick={() => onEdit(record?.id)}
         >
           Sửa
         </Button>,
@@ -130,11 +132,14 @@ export const accountListColumns = ({
             confirmTitle="Xác nhận khóa tài khoản"
             confirmContent="Bạn có chắc chắn muốn khóa tài khoản này?"
             onConfirm={() => {
-              console.log("Đã xác nhận khóa!");
+              onLock(record?.id);
             }}
             icon={<LockOutlined />}
             type="link"
             danger
+            disabled={[STATUS_ENUM.LOCKED, STATUS_ENUM.INACTIVE]?.includes(
+              record?.trangThai
+            )}
           />
         ),
         <ConfirmActionButton
@@ -142,10 +147,11 @@ export const accountListColumns = ({
           confirmTitle="Xác nhận xoá tài khoản"
           confirmContent="Bạn có chắc chắn muốn xoá tài khoản này?"
           onConfirm={() => {
-            console.log("Đã xác nhận xoá!");
+            onDelete(record?.id);
           }}
           type="link"
           danger
+          disabled={record?.trangThai === STATUS_ENUM.INACTIVE}
           icon={<DeleteOutlined />}
         />,
       ],
@@ -157,6 +163,6 @@ export const accountListColumns = ({
 };
 
 export const paginationToOffsetLimit = (current, pageSize) => ({
-  page: current - 1,
+  PageNumber: current > 1 ? current - 1 : current,
   limit: pageSize,
 });

@@ -69,20 +69,20 @@ export const STATUS_OPTIONS = [
 ];
 
 export const ACCOUNT_LABELS = {
-  username: "Tên",
-  password: "Mật khẩu",
-  role: "Vai trò",
-  account_status: "Trạng thái",
-  employee_code: "Mã nhân viên",
-  full_name: "Họ và tên",
-  email: "Email",
-  department_code: "Phòng ban",
-  position_name: "Vị trí",
-  gender: "Giới tính",
-  date_of_birth: "Ngày sinh",
-  address: "Địa chỉ",
-  phone_number: "Số điện thoại",
-  join_date: "Ngày tham gia",
-  level: "Cấp bậc",
-  profile_image: "Ảnh",
+  userName: "Tên đăng nhập", // tenDangNhap
+  password: "Mật khẩu", // matKhau
+  role: "Vai trò", // vaiTro
+  status: "Trạng thái", // trangThai
+  codeEmployee: "Mã nhân viên", // maNhanVien
+  fullName: "Họ và tên", // hoTen
+  email: "Email", // email
+  department: "Phòng ban", // phongBan
+  position: "Chức vụ", // chucVu
+  gender: "Giới tính", // gioiTinh
+  dateOfBirth: "Ngày sinh", // ngaySinh
+  address: "Địa chỉ", // diaChi
+  phoneNumber: "Số điện thoại", // soDienThoai
+  startDate: "Ngày vào làm", // ngayVaoLam
+  rank: "Cấp bậc", // capBac
+  profileImage: "Ảnh đại diện", // anhDaiDien
 };
