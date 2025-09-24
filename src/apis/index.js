@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://02503lhg-5242.asse.devtunnels.ms/api",
+  baseUrl: "https://4rbwkfw9-5242.asse.devtunnels.ms/api",
   prepareHeaders: (headers, { getState }) => {
     // Lấy token từ Redux state hoặc localStorage
     const token =
@@ -93,7 +93,7 @@ export const apiSlice = createApi({
       invalidatesTags: ["Employees"],
     }),
     uploadProfile: builder.mutation({
-      query: ({body}) => ({
+      query: ({ body }) => ({
         url: `/accounts/upload-profile`,
         method: "POST",
         body,
