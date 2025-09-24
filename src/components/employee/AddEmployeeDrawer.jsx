@@ -19,7 +19,7 @@ import {
 import { UploadOutlined, UserOutlined } from "@ant-design/icons";
 import {
   useCreateEmployeeMutation,
-  useLazyGetAccountDetailQuery,
+  useLazyGetEmployeeDetailQuery,
 } from "../../apis";
 import { formatPayload, normalizeInitialAccDetail } from "../../utils";
 import ReadOnlyField from "../ReadOnlyField";
@@ -30,7 +30,7 @@ const AddEmployeeDrawer = ({ open, onClose, readOnly, id }) => {
   const title = "Thông tin nhân viên";
 
   const [getAccountDetail, { data, isLoading, isFetching }] =
-    useLazyGetAccountDetailQuery();
+    useLazyGetEmployeeDetailQuery();
   const [createEmployee] = useCreateEmployeeMutation();
   const [accDetail, setAccDetail] = useState();
 

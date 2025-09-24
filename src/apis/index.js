@@ -84,6 +84,13 @@ export const apiSlice = createApi({
       }),
       providesTags: ["AccountDetail"],
     }),
+    getEmployeeDetail: builder.query({
+      query: (id) => ({
+        url: `/employees/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["EmployeeDetail"],
+    }),
     createEmployee: builder.mutation({
       query: (body) => ({
         url: "/employees",
@@ -114,4 +121,5 @@ export const {
   useLazyGetAccountDetailQuery,
   useCreateEmployeeMutation,
   useUploadProfileMutation,
+  useLazyGetEmployeeDetailQuery,
 } = apiSlice;
